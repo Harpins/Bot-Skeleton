@@ -16,7 +16,7 @@ async def cmd_start(message: Message):
 async def cmd_start(message: Message):
     await message.answer("SampleText", reply_markup=builder.make_fruit_buttons())
 
-#Ожидает изображение в чате - высылает ID изображение, затем само изображение
+#Ожидает изображение в чате - высылает ID изображения, затем само изображение
 @router.message(F.photo)
 async def get_photo(message: Message):
     await message.answer(f"ID фотографии: {message.photo[-1].file_id}")
