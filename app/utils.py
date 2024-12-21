@@ -150,10 +150,6 @@ def format_time_to_string(time: datetime):
     return time.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def format_string_to_time(string_time="2024-12-21T14:00:00Z"):
-    return datetime.strptime(string_time, "%Y-%m-%dT%H:%M:%SZ")
-
-
 def get_occupied_time_intervals(found_availabilities):
     occupied_time_intervals = []
     for availability in found_availabilities:
@@ -168,7 +164,10 @@ def get_occupied_time_intervals(found_availabilities):
 
 
 def get_free_time_intervals(occupied_time_intervals):
-    start_time, end_time = "2024-12-01T14:00:00Z", "2024-12-01T14:00:00Z"
+    str_start_time = "2024-01-01T14:00:00Z"
+    str_end_time = "2024-12-31T14:00:00Z"
+    start_time = datetime.fromisoformat(str_start_time.replace("Z", "+00:00"))
+    end_time = datetime.fromisoformat(str_end_time.replace("Z", "+00:00"))
     free_time_intervals = []
     if occupied_time_intervals[0][0] > start_time:
         free_time_intervals.append((free_time_intervals, occupied_time_intervals[0][0]))

@@ -4,6 +4,7 @@ from aiogram.filters import CommandStart, Command
 import app.keyboards as kb
 import app.builder as builder
 import app.utils as utl
+from datetime import date
 
 router = Router()
 
@@ -18,8 +19,6 @@ storage = {
     "availability": {},
 }
 
-# Финальное сообщение
-final_msg = f"Вы записаны на {storage['procedure']['name']}. Стоимость {storage['procedure']['price']}\nСпециалист - {storage['specialist']['user']['username']}"
 
 # Ожидает команду /start - отправляет приветствие, запрашивает согласие на обработку персональных данных
 
@@ -29,7 +28,7 @@ async def cmd_start(message: Message):
     doc_path = "app/Personal_data.pdf"
     document = FSInputFile(doc_path)
     await message.answer("Здравствуйте")
-    await message.answer("Чтобы связаться с менеджером введите команду /manager")
+    await message.answer("Получить телефон менеджера можно по команде /manager")
     await message.answer_document(
         document=document,
         caption="""Для предоставления вам персонализированных услуг нам необходимо получить ваше согласие на обработку персональных данных""",
@@ -145,7 +144,7 @@ async def handle_procedure_callback(callback: CallbackQuery):
     if procedure:
         storage["procedure"] = procedure
         await callback.message.answer(
-            text=f"{procedure['name']}\nОписание процедуры: {procedure['description']}",
+            text=f"{procedure['name']}\nОписание процедуры: {procedure['description']}\nСтоимость: {procedure['price']} руб.",
             reply_markup=kb.confirm_procedure,
         )
 
@@ -197,21 +196,22 @@ async def choose_time(callback: CallbackQuery):
         )
     else:
         await callback.message.answer(
-            "Нет свободных записей на сегодня, уточните время у менеджера",
-            reply_markup=kb.call_manager_later,
+            "Выберите время для записи сегодня",
+            reply_markup=builder.choose_any_time(),
         )
-        await call_manager(callback.message)
 
 
 # Обработка выбора свободного времени и подтверждение записи
 @router.callback_query(F.data.startswith("time_"))
 async def handle_choose_time_callback(callback: CallbackQuery):
     await callback.answer()
-    start_time = callback.data.split("_")[1]
-    end_time = callback.data.split("_")[2]
+    start_time = f'{date.today().isoformat()}-{callback.data.split("_")[1]}'
+    end_time = f'{date.today().isoformat()}-{callback.data.split("_")[2]}'
     storage["start_time"] = start_time
     storage["end_time"] = end_time
-    await callback.message.answer(final_msg, reply_markup=kb.confirm_booking)
+    specialist = storage["specialist"]["user"]["username"].replace("_", " ")
+    msg_template = f"Вы записаны на {storage['procedure']['name']}. Стоимость {storage['procedure']['price']} руб.\nСпециалист - {specialist}\nВремя записи по {start_time} по {end_time}"
+    await callback.message.answer(msg_template, reply_markup=kb.confirm_booking)
 
 
 # Обработка подтверждения записи
@@ -227,6 +227,7 @@ async def handle_confirmation_callback(callback: CallbackQuery):
         "availability": storage["availability"],
         "price": storage["procedure"]["price"],
         "phone_number": storage["client"]["phone_number"],
+        "confirmed": True,
     }
     utl.register_booking(params)
     await callback.message.answer("Запись создана")

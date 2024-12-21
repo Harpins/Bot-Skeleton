@@ -1,7 +1,6 @@
-from aiogram.types import KeyboardButton, InlineKeyboardButton
-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
+from aiogram.types import InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 import app.utils as utl
-from datetime import datetime
 
 def make_salons_buttons():
     keyboard = InlineKeyboardBuilder()
@@ -44,9 +43,20 @@ def choose_free_time(free_time_intervals):
     for interval in free_time_intervals:
         keyboard.add(
             InlineKeyboardButton(
-                text=f'{utl.format_time_to_string(interval[0])}_{utl.format_time_to_string(interval[1])}',
+                text=f'{utl.format_time_to_string(interval[0])}-{utl.format_time_to_string(interval[1])}',
                 callback_data=f'time_{utl.format_time_to_string(interval[0])}_{utl.format_time_to_string(interval[1])}',
                 )
             )
     return keyboard.adjust(1).as_markup()
-    
+
+
+def choose_any_time():
+    keyboard = InlineKeyboardBuilder()
+    for hour in range(8, 21):
+        keyboard.add(
+            InlineKeyboardButton(
+                text=f'{hour}:00-{hour+1}:00',
+                callback_data=f'time_{hour}:00_{hour+1}:00',
+                )
+            )
+    return keyboard.adjust(3).as_markup()
